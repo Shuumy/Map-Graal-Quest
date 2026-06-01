@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Carta Arthuriana — carte interactive des lieux majeurs des légendes arthuriennes médiévales.">
-  <title>Carta Arthuriana — Carte des Légendes Arthuriennes</title>
+  <meta name="description" content="Carta Arthuriana — hub et carte interactive des lieux majeurs des légendes arthuriennes médiévales.">
+  <title>Carta Arthuriana — Hub des Légendes Arthuriennes</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -12,36 +12,84 @@
   <link rel="stylesheet" href="./css/styles.css">
 </head>
 <body>
-  <aside id="sidebar" aria-label="Légende et détails des lieux">
-    <button id="close-btn" type="button" title="Fermer" aria-label="Fermer la légende">✕</button>
-    <header id="sidebar-header">
-      <div id="header-ornament" aria-hidden="true">⚜ ✦ ⚜</div>
-      <h1>Carta Arthuriana</h1>
-      <div class="subtitle">Cartographie des légendes — IXe–XVe siècles</div>
-    </header>
-    <section id="info-panel" aria-live="polite">
-      <div class="placeholder">Cliquez sur un lieu pour afficher les sources et personnages associés.</div>
-    </section>
-    <section class="sidebar-section" aria-labelledby="filter-title">
-      <div id="filter-title" class="sidebar-section-title">Filtrer par thème</div>
-      <div id="filter-grid"></div>
-    </section>
-    <nav id="legend-scroll" aria-label="Index des lieux">
-      <div class="sidebar-section-title">Index des lieux</div>
-      <div id="legend-content"></div>
-    </nav>
-  </aside>
+  <div id="app-shell">
+    <aside id="app-nav" aria-label="Navigation principale">
+      <a id="brand" href="#home" aria-label="Carta Arthuriana — Accueil">
+        <span class="brand-mark" aria-hidden="true">⚜</span>
+        <span class="brand-text">Carta<br>Arthuriana</span>
+      </a>
 
-  <main id="map-wrap">
-    <div id="map-badge" aria-hidden="true">
-      <h2>CARTA ARTHURIANA</h2>
-      <p>Sources primaires médiévales · IXe–XVe s.</p>
-    </div>
-    <button id="legend-toggle-btn" type="button" title="Afficher la légende" aria-label="Afficher ou masquer la légende" aria-expanded="false">☰</button>
-    <div id="map" role="application" aria-label="Carte interactive des lieux arthuriens"></div>
-  </main>
+      <button class="nav-btn active" type="button" data-view="home" aria-label="Accueil — légende et index" aria-pressed="true">
+        <span class="nav-icon" aria-hidden="true">⌂</span>
+        <span>Accueil</span>
+      </button>
 
-  <noscript>Cette carte interactive nécessite JavaScript.</noscript>
+      <button class="nav-btn" type="button" data-view="map" aria-label="Carte interactive" aria-pressed="false">
+        <span class="nav-icon" aria-hidden="true">🗺</span>
+        <span>Carte</span>
+      </button>
+    </aside>
+
+    <main id="main-content">
+      <section id="home-view" class="app-view active" aria-labelledby="home-title">
+        <div class="home-hero">
+          <div>
+            <p class="eyebrow">Hub narratif</p>
+            <h1 id="home-title">Légende & index des lieux arthuriens</h1>
+            <p class="hero-copy">Explore les lieux, personnages, événements et sources avant de passer à la carte interactive.</p>
+          </div>
+          <div class="hero-stats" aria-label="Résumé du corpus">
+            <div><strong id="stat-locations">0</strong><span>lieux</span></div>
+            <div><strong id="stat-categories">0</strong><span>thèmes</span></div>
+          </div>
+        </div>
+
+        <div class="hub-grid">
+          <section class="panel catalog-panel" aria-labelledby="catalog-title">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Bibliothèque</p>
+                <h2 id="catalog-title">Index</h2>
+              </div>
+              <label class="search-box">
+                <span aria-hidden="true">⌕</span>
+                <input id="search-input" type="search" placeholder="Chercher un lieu, personnage, événement…" autocomplete="off">
+              </label>
+            </div>
+
+            <div id="filter-grid" aria-label="Filtres par thème"></div>
+            <div id="legend-content" class="legend-grid" aria-live="polite"></div>
+          </section>
+
+          <aside class="panel detail-panel" aria-label="Fiche de légende sélectionnée">
+            <div id="legend-detail">
+              <p class="eyebrow">Fiche détaillée</p>
+              <h2>Choisis un lieu</h2>
+              <p class="placeholder">Sélectionne une carte dans l’index ou clique sur un événement depuis la carte pour ouvrir la fiche associée ici.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="map-view" class="app-view" aria-labelledby="map-title">
+        <div id="map-badge" aria-hidden="true">
+          <p class="eyebrow">Carte interactive</p>
+          <h2 id="map-title">CARTA ARTHURIANA</h2>
+          <p>Points d’intérêt · événements · sources</p>
+        </div>
+
+        <div id="map" role="application" aria-label="Carte interactive des lieux arthuriens"></div>
+
+        <aside id="map-info-panel" aria-live="polite">
+          <p class="eyebrow">Point d’intérêt</p>
+          <h2>Sélectionne un marqueur</h2>
+          <p class="placeholder">Clique sur un point de la carte pour afficher sa zone géographique, ses personnages et ses événements liés.</p>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <noscript>Cette application nécessite JavaScript.</noscript>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="./js/base-data-00.js"></script>
   <script src="./js/base-data-01.js"></script>
