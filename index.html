@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Carta Arthuriana — hub et carte interactive des lieux majeurs des légendes arthuriennes médiévales.">
-  <title>Carta Arthuriana — Hub des Légendes Arthuriennes</title>
+  <meta name="description" content="Carta Arthuriana — hub et atlas interactif des lieux majeurs des légendes arthuriennes médiévales.">
+  <title>Carta Arthuriana — Atlas des Légendes Arthuriennes</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="./css/styles.css">
 </head>
 <body>
@@ -24,9 +23,9 @@
         <span>Accueil</span>
       </button>
 
-      <button class="nav-btn" type="button" data-view="map" aria-label="Carte interactive" aria-pressed="false">
-        <span class="nav-icon" aria-hidden="true">🗺</span>
-        <span>Carte</span>
+      <button class="nav-btn" type="button" data-view="map" aria-label="Atlas interactif" aria-pressed="false">
+        <span class="nav-icon" aria-hidden="true">✦</span>
+        <span>Atlas</span>
       </button>
     </aside>
 
@@ -36,7 +35,7 @@
           <div>
             <p class="eyebrow">Hub narratif</p>
             <h1 id="home-title">Légende & index des lieux arthuriens</h1>
-            <p class="hero-copy">Explore les lieux, personnages, événements et sources avant de passer à la carte interactive.</p>
+            <p class="hero-copy">Explore les lieux, personnages, événements et sources avant de passer à l’atlas manuscrit interactif.</p>
           </div>
           <div class="hero-stats" aria-label="Résumé du corpus">
             <div><strong id="stat-locations">0</strong><span>lieux</span></div>
@@ -65,7 +64,7 @@
             <div id="legend-detail">
               <p class="eyebrow">Fiche détaillée</p>
               <h2>Choisis un lieu</h2>
-              <p class="placeholder">Sélectionne une carte dans l’index ou clique sur un événement depuis la carte pour ouvrir la fiche associée ici.</p>
+              <p class="placeholder">Sélectionne une carte dans l’index ou clique sur un événement depuis l’atlas pour ouvrir la fiche associée ici.</p>
             </div>
           </aside>
         </div>
@@ -73,24 +72,25 @@
 
       <section id="map-view" class="app-view" aria-labelledby="map-title">
         <div id="map-badge" aria-hidden="true">
-          <p class="eyebrow">Carte interactive</p>
-          <h2 id="map-title">CARTA ARTHURIANA</h2>
-          <p>Points d’intérêt · événements · sources</p>
+          <p class="eyebrow">Atlas interactif</p>
+          <h2 id="map-title">MONDE ARTHURIEN</h2>
+          <p>Carte manuscrite · points d’intérêt · encarts</p>
         </div>
 
-        <div id="map" role="application" aria-label="Carte interactive des lieux arthuriens"></div>
+        <div id="map" role="application" aria-label="Atlas fixe interactif des lieux arthuriens">
+          <div id="atlas-stage" aria-live="polite"></div>
+        </div>
 
         <aside id="map-info-panel" aria-live="polite">
           <p class="eyebrow">Point d’intérêt</p>
-          <h2>Sélectionne un marqueur</h2>
-          <p class="placeholder">Clique sur un point de la carte pour afficher sa zone géographique, ses personnages et ses événements liés.</p>
+          <h2>Sélectionne un sceau</h2>
+          <p class="placeholder">Clique sur un point de l’atlas pour afficher sa zone géographique, ses personnages et ses événements liés.</p>
         </aside>
       </section>
     </main>
   </div>
 
   <noscript>Cette application nécessite JavaScript.</noscript>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="./js/base-data-00.js"></script>
   <script src="./js/base-data-01.js"></script>
   <script src="./js/base-data-rest.js"></script>
