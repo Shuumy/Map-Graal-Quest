@@ -12,10 +12,14 @@
   const activeCats = new Set(Object.keys(categories));
   const markers = new Map();
   const bounds = [];
+
   let selectedLocationId = null;
   let searchTerm = '';
+  let currentView = 'home';
+  let mapReady = false;
 
   const navButtons = $$('.nav-btn');
+  const brand = $('#brand');
   const views = {
     home: $('#home-view'),
     map: $('#map-view')
@@ -28,6 +32,11 @@
   const statLocations = $('#stat-locations');
   const statCategories = $('#stat-categories');
 
+  if (!views.home || !views.map || !legendDetail || !mapInfoPanel || !filterGrid || !legendContent) {
+    console.error('Carta Arthuriana: structure HTML incomplète.');
+    return;
+  }
+
   statLocations.textContent = String(locations.length);
   statCategories.textContent = String(Object.keys(categories).length);
 
@@ -37,6 +46,11 @@
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
+  const compactText = (text, limit = 145) => {
+    const value = String(text || '');
+    return value.length > limit ? `${value.slice(0, limit).trim()}…` : value;
+  };
+
   const markerIcon = (cat) => {
     const color = categories[cat]?.color || '#8B1E1E';
     return L.divIcon({
@@ -45,11 +59,6 @@
       iconSize: [17, 17],
       iconAnchor: [8, 8]
     });
-  };
-
-  const compactText = (text, limit = 145) => {
-    const value = String(text || '');
-    return value.length > limit ? `${value.slice(0, limit).trim()}…` : value;
   };
 
   const renderTags = (items) => (items || []).slice(0, 10)
@@ -79,7 +88,20 @@
     return haystack.includes(searchTerm);
   };
 
+  const invalidateMapSafely = () => {
+    window.setTimeout(() => {
+      map.invalidateSize();
+      if (!mapReady && bounds.length) {
+        map.fitBounds(bounds, { padding: [36, 36] });
+        mapReady = true;
+      }
+    }, 80);
+  };
+
   const switchView = (viewName) => {
+    if (!views[viewName]) return;
+    currentView = viewName;
+
     Object.entries(views).forEach(([name, view]) => {
       view.classList.toggle('active', name === viewName);
     });
@@ -90,16 +112,7 @@
       button.setAttribute('aria-pressed', String(active));
     });
 
-    if (viewName === 'map') {
-      window.setTimeout(() => {
-        map.invalidateSize();
-        if (selectedLocationId && markers.has(selectedLocationId)) {
-          focusMapLocation(markers.get(selectedLocationId).loc, false);
-        } else if (bounds.length) {
-          map.fitBounds(bounds, { padding: [36, 36] });
-        }
-      }, 80);
-    }
+    if (viewName === 'map') invalidateMapSafely();
   };
 
   const renderLegendDetail = (loc) => {
@@ -121,10 +134,33 @@
     });
   };
 
-  const openLegend = (locId, { navigate = true, scroll = true } = {}) => {
+  const renderLegend = () => {
+    const filtered = locations.filter(locationMatches);
+    if (!filtered.length) {
+      legendContent.innerHTML = '<p class="placeholder">Aucun lieu ne correspond à cette recherche.</p>';
+      return;
+    }
+
+    legendContent.innerHTML = filtered.map((loc) => `
+      <button class="legend-item${selectedLocationId === loc.id ? ' active' : ''}" type="button" data-id="${loc.id}" style="--cat-color:${categories[loc.cat]?.color || '#d5b35a'}">
+        <div class="legend-item-title">${escapeHTML(loc.name)}</div>
+        <div class="legend-item-meta">${escapeHTML(categories[loc.cat]?.label || loc.cat)} · ${escapeHTML(loc.region || '')}</div>
+        <div class="legend-item-desc">${escapeHTML(compactText(loc.desc, 110))}</div>
+      </button>
+    `).join('');
+  };
+
+  const openLegend = (locId, { navigate = true, scroll = true, clearSearch = false } = {}) => {
     const entry = markers.get(Number(locId));
     if (!entry) return;
+
     selectedLocationId = entry.loc.id;
+
+    if (clearSearch && searchInput) {
+      searchInput.value = '';
+      searchTerm = '';
+    }
+
     renderLegendDetail(entry.loc);
     renderLegend();
     highlightLegendCard(entry.loc.id);
@@ -139,11 +175,7 @@
     }
   };
 
-  const showMapInfo = (loc) => {
-    selectedLocationId = loc.id;
-    renderLegendDetail(loc);
-    renderLegend();
-    highlightLegendCard(loc.id);
+  const renderMapInfo = (loc) => {
     mapInfoPanel.innerHTML = `
       <p class="eyebrow">${escapeHTML(categories[loc.cat]?.label || loc.cat)}</p>
       <h2 class="detail-title">${escapeHTML(loc.name)}</h2>
@@ -155,11 +187,20 @@
     `;
   };
 
-  const focusMapLocation = (loc, openPopup = true) => {
+  const showMapInfo = (loc) => {
+    selectedLocationId = loc.id;
+    renderLegendDetail(loc);
+    renderMapInfo(loc);
+    highlightLegendCard(loc.id);
+  };
+
+  const focusMapLocation = (loc, { openPopup = true } = {}) => {
     const entry = markers.get(loc.id);
     if (!entry) return;
+
     switchView('map');
     window.setTimeout(() => {
+      map.invalidateSize();
       map.setView([loc.lat, loc.lng], Math.max(map.getZoom(), 7), { animate: true });
       showMapInfo(loc);
       if (openPopup) entry.marker.openPopup();
@@ -167,6 +208,8 @@
   };
 
   const addMarker = (loc) => {
+    if (!Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) return;
+
     const marker = L.marker([loc.lat, loc.lng], { icon: markerIcon(loc.cat), title: loc.name })
       .bindPopup(`
         <div class="popup-title">${escapeHTML(loc.name)}</div>
@@ -174,6 +217,7 @@
         <div class="popup-hint">Détails affichés dans le panneau de carte.</div>
       `)
       .on('click', () => showMapInfo(loc));
+
     markers.set(loc.id, { marker, loc });
     bounds.push([loc.lat, loc.lng]);
   };
@@ -196,37 +240,28 @@
     `).join('');
   };
 
-  const renderLegend = () => {
-    const filtered = locations.filter(locationMatches);
-    if (!filtered.length) {
-      legendContent.innerHTML = '<p class="placeholder">Aucun lieu ne correspond à cette recherche.</p>';
-      return;
-    }
-
-    legendContent.innerHTML = filtered.map((loc) => `
-      <button class="legend-item${selectedLocationId === loc.id ? ' active' : ''}" type="button" data-id="${loc.id}" style="--cat-color:${categories[loc.cat]?.color || '#d5b35a'}">
-        <div class="legend-item-title">${escapeHTML(loc.name)}</div>
-        <div class="legend-item-meta">${escapeHTML(categories[loc.cat]?.label || loc.cat)} · ${escapeHTML(loc.region || '')}</div>
-        <div class="legend-item-desc">${escapeHTML(compactText(loc.desc, 110))}</div>
-      </button>
-    `).join('');
-  };
-
   navButtons.forEach((button) => {
     button.addEventListener('click', () => switchView(button.dataset.view));
+  });
+
+  brand?.addEventListener('click', (event) => {
+    event.preventDefault();
+    switchView('home');
   });
 
   filterGrid.addEventListener('click', (event) => {
     const button = event.target.closest('[data-cat]');
     if (!button) return;
+
     const cat = button.dataset.cat;
     activeCats.has(cat) ? activeCats.delete(cat) : activeCats.add(cat);
+
     renderFilters();
     renderLegend();
     refreshMarkers();
   });
 
-  searchInput.addEventListener('input', (event) => {
+  searchInput?.addEventListener('input', (event) => {
     searchTerm = event.target.value.trim().toLowerCase();
     renderLegend();
   });
@@ -240,14 +275,16 @@
   document.addEventListener('click', (event) => {
     const eventLink = event.target.closest('[data-open-legend]');
     if (eventLink) {
-      openLegend(Number(eventLink.dataset.openLegend), { navigate: true, scroll: true });
+      event.preventDefault();
+      openLegend(Number(eventLink.dataset.openLegend), { navigate: true, scroll: true, clearSearch: true });
       return;
     }
 
     const mapLink = event.target.closest('[data-open-map]');
     if (mapLink) {
+      event.preventDefault();
       const entry = markers.get(Number(mapLink.dataset.openMap));
-      if (entry) focusMapLocation(entry.loc, true);
+      if (entry) focusMapLocation(entry.loc, { openPopup: true });
     }
   });
 
